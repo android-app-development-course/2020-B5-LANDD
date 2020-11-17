@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_task"
+        android:icon="@drawable/ic_task_black_24dp"
+        android:title="@string/title_task" />
+
+    <item
+        android:id="@+id/navigation_host"
+        android:icon="@drawable/ic_host_black_24dp"
+        android:title="@string/title_host" />
+
+</menu>
