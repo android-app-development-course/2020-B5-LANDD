@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_task">
+
+    <fragment
+        android:id="@+id/navigation_task"
+        android:name="com.example.landd.ui.task.TaskFragment"
+        android:label="@string/title_task"
+        tools:layout="@layout/fragment_task" >
+        <action
+            android:id="@+id/action_navigation_task_to_navigation_host"
+            app:destination="@id/navigation_host" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_host"
+        android:name="com.example.landd.ui.host.HostFragment"
+        android:label="@string/title_host"
+        tools:layout="@layout/fragment_host" >
+        <action
+            android:id="@+id/action_navigation_host_to_navigation_task"
+            app:destination="@id/navigation_task" />
+    </fragment>
+
+</navigation>
