@@ -1,5 +1,6 @@
 package com.example.landd.ui.task
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +9,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
+import kotlinx.android.synthetic.main.cell_download.view.*
 
 
 class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
@@ -38,8 +41,10 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
     val TYPE_NORMAL = 1
     private var mHeaderView: View? = null
 
+    @SuppressLint("UseCompatLoadingForDrawables")
     inner class DownLoadViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
           lateinit var fileType: ImageView
+          lateinit var pause: ImageView
           lateinit var fileName: TextView
           lateinit var downloadProcess: TextView
           lateinit var fileSpeed: TextView
@@ -48,16 +53,22 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
              if(itemView != mHeaderView)
              {
                  fileType  = itemView.findViewById(R.id.fileType)
+                 pause = itemView.findViewById(R.id.pause)
                  fileName  = itemView.findViewById(R.id.fileName)
                  downloadProcess  = itemView.findViewById(R.id.doenLoadText)
                  fileSpeed  = itemView.findViewById(R.id.downloadSpeed)
                  itemView.setOnClickListener { v -> //此处回传点击监听事件
                      onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition))
-                }
+                 }
                  //长按
                  itemView.setOnLongClickListener { v ->
                      mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
                      true
+                 }
+                 itemView.pause.setOnClickListener{
+                     if(pause.drawable.constantState?.equals(pause.resources.getDrawable(R.drawable.start).constantState) == true) {
+                         pause.setImageResource(R.drawable.pause)
+                     }else{pause.setImageResource(R.drawable.start)}
                  }
              }
          }

@@ -12,4 +12,7 @@
     <string name="fileSize">100MB</string>
     <string name="FinishTime">2020-11-11 0:04</string>
     <string name="delete">删除</string>
+    <string name="setting">设置</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

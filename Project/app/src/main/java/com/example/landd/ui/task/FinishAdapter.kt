@@ -5,8 +5,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
+import kotlinx.android.synthetic.main.cell_finish.view.*
 
 class FinishAdapter(private var finishList: MutableList<FinishEntity>):
     RecyclerView.Adapter<FinishAdapter.FinishViewHolder>() {
@@ -37,6 +40,7 @@ class FinishAdapter(private var finishList: MutableList<FinishEntity>):
 
     inner class FinishViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         lateinit var fileType: ImageView
+        lateinit var del:ImageView
         lateinit var fileName: TextView
         lateinit var fileSize: TextView
         lateinit var finishTime: TextView
@@ -45,6 +49,7 @@ class FinishAdapter(private var finishList: MutableList<FinishEntity>):
             if(itemView != mHeaderView)
             {
                 fileType  = itemView.findViewById(R.id.Finish_fileType)
+                del = itemView.findViewById(R.id.deleteView)
                 fileName  = itemView.findViewById(R.id.file_name_finish)
                 fileSize  = itemView.findViewById(R.id.file_size_finish)
                 finishTime  = itemView.findViewById(R.id.finish_time)
@@ -55,6 +60,15 @@ class FinishAdapter(private var finishList: MutableList<FinishEntity>):
                 itemView.setOnLongClickListener { v ->
                     mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
                     true
+                }
+                itemView.deleteView.setOnClickListener{
+                    if(finishList.size>0) {
+                        finishList.removeAt(position-1);
+                        notifyItemRemoved(position);
+                        //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
+                        notifyItemRangeChanged(position, finishList.size- position);
+                        //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }

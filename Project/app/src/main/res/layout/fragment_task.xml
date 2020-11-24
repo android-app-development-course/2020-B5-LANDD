@@ -7,69 +7,56 @@
     android:background="#F6F6F6"
     tools:context=".ui.task.TaskFragment">
 
-    <com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout
-        android:id="@+id/activity_main_rfal"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nscrollview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:fadingEdge="none"
+        android:overScrollMode="never"
         fab:layout_constraintEnd_toEndOf="parent"
         fab:layout_constraintStart_toStartOf="parent"
-        fab:layout_constraintTop_toTopOf="parent"
-        fab:rfal_frame_alpha="0.7"
-        fab:rfal_frame_color="#F6F6F6">
+        fab:layout_constraintTop_toTopOf="parent">
 
-        <androidx.core.widget.NestedScrollView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
-            android:layout_marginEnd="0dp">
+            android:layout_marginEnd="0dp"
+            android:layout_marginBottom="0dp"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/DownLoad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="0dp"
-                android:layout_marginTop="0dp"
-                android:layout_marginEnd="0dp"
-                android:layout_marginBottom="0dp"
-                android:orientation="vertical">
+                android:fadingEdge="none"
+                android:overScrollMode="never"
+                android:background="#F6F6F6" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/DownLoad"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#F6F6F6" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/Finish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fadingEdge="none"
+                android:overScrollMode="never"
+                android:background="#F6F6F6" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/Finish"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#F6F6F6" />
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-
-        <com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton
-            android:id="@+id/activity_main_rfab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="15dp"
-            android:layout_marginBottom="15dp"
-            android:padding="8dp"
-            fab:rfab_color_normal="#37474f"
-            fab:rfab_color_pressed="#263238"
-            fab:rfab_drawable="@drawable/rfab__drawable_rfab_default"
-            fab:rfab_shadow_color="#999999"
-            fab:rfab_shadow_dx="0dp"
-            fab:rfab_shadow_dy="2dp"
-            fab:rfab_shadow_radius="7dp"
-            fab:rfab_size="normal" />
-
-
-    </com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout>
-
+    <com.melnykov.fab.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_baseline_add_24"
+        fab:fab_colorNormal="#434343"
+        fab:fab_colorPressed="#272727"
+        fab:layout_constraintBottom_toBottomOf="parent"
+        fab:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

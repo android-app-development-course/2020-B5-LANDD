@@ -2,7 +2,6 @@ package com.example.landd.ui.task
 
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -10,9 +9,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ScrollView
+import android.widget.AbsListView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -23,7 +23,7 @@ import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
 import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
 import com.kongzue.dialog.v3.InputDialog
-import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton
+import com.melnykov.fab.FloatingActionButton
 
 
 class TaskFragment : Fragment() {
@@ -48,7 +48,7 @@ class TaskFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_task, container, false)
         taskViewModel.text.observe(viewLifecycleOwner, Observer {
         })
-        val fab: RapidFloatingActionButton =root.findViewById(R.id.activity_main_rfab)
+        val fab: FloatingActionButton = root.findViewById(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
             InputDialog.show(activity as AppCompatActivity, "新建任务", "请输入网址url", "确定", "取消")
                 .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
@@ -70,7 +70,6 @@ class TaskFragment : Fragment() {
                 .setBackgroundColor(Color.TRANSPARENT)
         }
 
-        val scrollview =
         //下载页面
         Log.d("where", "after initContents()")
         initDownLoadContents()
@@ -85,7 +84,7 @@ class TaskFragment : Fragment() {
         adapter!!.setOnItemClickListener(object : DownLoadAdapter.OnItemClickListener {
             @SuppressLint("ShowToast")
             override fun OnItemClick(view: View?, data: DownLoadEntity?) {
-                Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT)
+                Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -94,12 +93,12 @@ class TaskFragment : Fragment() {
         adapter!!.setOnLongItemClickListener(object :
             DownLoadAdapter.OnRecyclerViewLongItemClickListener {
             override fun onLongItemClick(view: View?, position: Int) {
-                if(downLoadList.size>0) {
-                    downLoadList.removeAt(position-1);
+                if (downLoadList.size > 0) {
+                    downLoadList.removeAt(position - 1);
                     adapter!!.notifyItemRemoved(position);
-                    Toast.makeText(context, position.toString(),Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, position.toString(), Toast.LENGTH_SHORT).show()
                     //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
-                    adapter!!.notifyItemRangeChanged(position, downLoadList.size- position);
+                    adapter!!.notifyItemRangeChanged(position, downLoadList.size - position);
                     //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -118,7 +117,7 @@ class TaskFragment : Fragment() {
         adapter2!!.setOnItemClickListener(object : FinishAdapter.OnItemClickListener {
             @SuppressLint("ShowToast")
             override fun OnItemClick(view: View?, data: FinishEntity?) {
-                Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT)
+                Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT).show()
             }
         })
         //长按
@@ -126,12 +125,12 @@ class TaskFragment : Fragment() {
         adapter2!!.setOnLongItemClickListener(object :
             FinishAdapter.OnRecyclerViewLongItemClickListener {
             override fun onLongItemClick(view: View?, position: Int) {
-                if(finishList.size>0) {
-                    finishList.removeAt(position-1);
+                if (finishList.size > 0) {
+                    finishList.removeAt(position - 1);
                     adapter2!!.notifyItemRemoved(position);
-                    Toast.makeText(context, position.toString(),Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, position.toString(), Toast.LENGTH_SHORT).show()
                     //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
-                    adapter2!!.notifyItemRangeChanged(position, finishList.size- position);
+                    adapter2!!.notifyItemRangeChanged(position, finishList.size - position);
                     //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -156,12 +155,14 @@ class TaskFragment : Fragment() {
 
     private fun initFinishContents() {
         for (i in 0..2) {
-            val l1 = FinishEntity("电影鉴赏.ppt","ppt",
-                "12MB","2020-11-10 0:04"
+            val l1 = FinishEntity(
+                "电影鉴赏.ppt", "ppt",
+                "12MB", "2020-11-10 0:04"
             )
             finishList.add(l1)
-            val l2 = FinishEntity("软件测试.xlxs","xlsx",
-                "10MB","2020-11-20 12:00"
+            val l2 = FinishEntity(
+                "软件测试.xlxs", "xlsx",
+                "10MB", "2020-11-20 12:00"
             )
             finishList.add(l2)
         }

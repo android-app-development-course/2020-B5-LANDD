@@ -55,7 +55,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     //悬浮,可与recyclerview关联
-    implementation 'com.github.wangjiegulu:rfab:2.0.0'
+    implementation 'com.melnykov:floatingactionbutton:1.3.0'
     //对话框
     implementation 'com.kongzue.dialog_v3:dialog:3.2.4'
     //进度条

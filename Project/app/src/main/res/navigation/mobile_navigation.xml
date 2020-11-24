@@ -24,5 +24,10 @@
             android:id="@+id/action_navigation_host_to_navigation_task"
             app:destination="@id/navigation_task" />
     </fragment>
+    <fragment
+        android:id="@+id/settingFragment"
+        android:name="com.example.landd.ui.task.SettingFragment"
+        android:label="fragment_setting"
+        tools:layout="@layout/fragment_setting" />
 
 </navigation>

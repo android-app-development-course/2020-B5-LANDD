@@ -12,6 +12,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="overlapAnchor">false</item>
     </style>
     <style name="DarkLinearProgressDrawable" parent="Material.Drawable.LinearProgress">
         <item name="lpd_strokeColor">#B2DFDB</item>
