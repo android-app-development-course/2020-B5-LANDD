@@ -1,0 +1,138 @@
+package com.example.landd.ui.task
+
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.R
+
+
+class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
+    RecyclerView.Adapter<DownLoadAdapter.DownLoadViewHolder>() {
+    //需要外部访问，所以需要设置set方法，方便调用
+    private var onItemClickListener: DownLoadAdapter.OnItemClickListener? = null
+    //长按
+    var mOnLongItemClickListener: DownLoadAdapter.OnRecyclerViewLongItemClickListener? = null
+
+    //文件类型对应的资源文件
+    private var imgMap=mapOf(
+        "chm" to R.drawable.file_chm,
+        "code" to R.drawable.file_code, "css" to R.drawable.file_css,
+        "csv" to R.drawable.file_csv, "dmg" to R.drawable.file_dmg,
+        "xlsx" to R.drawable.file_excel_office, "exe" to R.drawable.file_exe,
+        "installtion" to R.drawable.file_installation_pa, "music" to R.drawable.file_music,
+        "oa" to R.drawable.file_oa, "open" to R.drawable.file_open,
+        "pdf" to R.drawable.file_pdf, "pic" to R.drawable.file_pic,
+        "ppt" to R.drawable.file_ppt_office, "rtf" to R.drawable.file_rtf,
+        "txt" to R.drawable.file_txt, "unknown" to R.drawable.file_unknown,
+        "video" to R.drawable.file_video, "doc" to R.drawable.file_word_office,
+        "zip" to R.drawable.file_zip
+    )
+
+    //set Header
+    val TYPE_HEADER = 0
+    val TYPE_NORMAL = 1
+    private var mHeaderView: View? = null
+
+    inner class DownLoadViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+          lateinit var fileType: ImageView
+          lateinit var fileName: TextView
+          lateinit var downloadProcess: TextView
+          lateinit var fileSpeed: TextView
+
+         init {
+             if(itemView != mHeaderView)
+             {
+                 fileType  = itemView.findViewById(R.id.fileType)
+                 fileName  = itemView.findViewById(R.id.fileName)
+                 downloadProcess  = itemView.findViewById(R.id.doenLoadText)
+                 fileSpeed  = itemView.findViewById(R.id.downloadSpeed)
+                 itemView.setOnClickListener { v -> //此处回传点击监听事件
+                     onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition))
+                }
+                 //长按
+                 itemView.setOnLongClickListener { v ->
+                     mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
+                     true
+                 }
+             }
+         }
+    }
+
+    /**
+     * 设置item的监听事件的接口
+     */
+    interface OnItemClickListener {
+        /**
+         * 接口中的点击每一项的实现方法，参数自己定义
+         */
+        fun OnItemClick(view: View?, data: DownLoadEntity?)
+    }
+
+
+    fun setOnItemClickListener(onItemClickListener: DownLoadAdapter.OnItemClickListener?) {
+        this.onItemClickListener = onItemClickListener
+    }
+
+    //长按
+    fun setOnLongItemClickListener(listener: DownLoadAdapter.OnRecyclerViewLongItemClickListener?) {
+        mOnLongItemClickListener = listener
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DownLoadViewHolder {
+       //set Header
+        if(mHeaderView != null && viewType == TYPE_HEADER)
+            return  DownLoadViewHolder(mHeaderView!!);
+
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val itemView: View = layoutInflater.inflate(R.layout.cell_download, parent, false)
+        return DownLoadViewHolder(itemView)
+    }
+
+    override fun onBindViewHolder(holder: DownLoadViewHolder, position: Int) {
+        //set Header
+        if(getItemViewType(position) == TYPE_HEADER) return;
+        val pos = getRealPosition(holder)
+
+        val download: DownLoadEntity = downloadList[pos]   //position 换为pos
+        val resid =imgMap.filter { download.getFileType().toString() in it.key }
+        holder.fileType.setImageResource(resid.values.toIntArray()[0])
+        holder.fileName.text = download.getFileName()
+        holder.downloadProcess.text = download.getFileSize()
+        holder.fileSpeed.text = download.getDownLoadSpeed()
+    }
+
+    override fun getItemCount(): Int {
+        //return downloadList.size
+        return if (mHeaderView == null) downloadList.size else downloadList.size+ 1
+    }
+
+    //set Hearder
+    open fun setHeaderView(headerView: View) {
+        mHeaderView = headerView
+        notifyItemInserted(0)
+    }
+
+    fun getHeaderView(): View? {
+        return mHeaderView
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        if (mHeaderView == null) return TYPE_NORMAL
+        return if (position == 0) TYPE_HEADER else TYPE_NORMAL
+    }
+
+    fun getRealPosition(holder: DownLoadAdapter.DownLoadViewHolder): Int {
+        val position = holder.layoutPosition
+        return if (mHeaderView == null) position else position - 1
+    }
+
+    //长按删除
+    open interface OnRecyclerViewLongItemClickListener {
+        fun onLongItemClick(view: View?, position: Int)
+    }
+}

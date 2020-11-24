@@ -2,4 +2,14 @@
     <string name="app_name">LANDD</string>
     <string name="title_task">Task</string>
     <string name="title_host">Host</string>
+    <string name="process">进度</string>
+    <string name="speed">网速</string>
+    <string name="filename">Task1</string>
+    <string name="filetype">文件类型</string>
+    <string name="pause">暂停</string>
+    <string name="下载">DownLoading(2)</string>
+    <string name="完成">Finish(2)</string>
+    <string name="fileSize">100MB</string>
+    <string name="FinishTime">2020-11-11 0:04</string>
+    <string name="delete">删除</string>
 </resources>
