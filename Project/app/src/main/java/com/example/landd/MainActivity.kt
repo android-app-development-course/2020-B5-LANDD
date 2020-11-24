@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.getItemId()) {
-            R.id.settingFragment -> {
+            R.id.settingsFragment -> {
                 NavigationUI.onNavDestinationSelected(
                     item,
                     Navigation.findNavController(this, R.id.nav_host_fragment)

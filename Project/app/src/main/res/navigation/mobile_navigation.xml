@@ -25,9 +25,8 @@
             app:destination="@id/navigation_task" />
     </fragment>
     <fragment
-        android:id="@+id/settingFragment"
-        android:name="com.example.landd.ui.task.SettingFragment"
-        android:label="fragment_setting"
-        tools:layout="@layout/fragment_setting" />
+        android:id="@+id/settingsFragment"
+        android:name="com.example.landd.ui.SettingsFragment"
+        android:label="SettingsFragment" />
 
 </navigation>
