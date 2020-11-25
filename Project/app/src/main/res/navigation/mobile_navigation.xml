@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_navigation_task_to_navigation_host"
             app:destination="@id/navigation_host" />
+        <action
+            android:id="@+id/action_navigation_task_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -23,10 +26,20 @@
         <action
             android:id="@+id/action_navigation_host_to_navigation_task"
             app:destination="@id/navigation_task" />
+        <action
+            android:id="@+id/action_navigation_host_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.landd.ui.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:label="SettingsFragment" >
+        <action
+            android:id="@+id/action_settingsFragment_to_navigation_host"
+            app:destination="@id/navigation_host" />
+        <action
+            android:id="@+id/action_settingsFragment_to_navigation_task"
+            app:destination="@id/navigation_task" />
+    </fragment>
 
 </navigation>
