@@ -6,6 +6,7 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -58,6 +59,10 @@ class HostFragment : Fragment() {
             )
                 .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
                     val result = inputStr.split(":")
+                    if (result.size != 2) {
+                        Toast.makeText(context, "输入应该为 ip:post 的形式", Toast.LENGTH_SHORT).show()
+                        return@OnInputDialogButtonClickListener false
+                    }
                     val ip = result[0]
                     var port = 0
                     try {
