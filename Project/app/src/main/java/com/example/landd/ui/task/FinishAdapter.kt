@@ -9,9 +9,10 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
+import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_finish.view.*
 
-class FinishAdapter(private var finishList: MutableList<FinishEntity>):
+class FinishAdapter(private var finishList: MutableList<Task>):
     RecyclerView.Adapter<FinishAdapter.FinishViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: FinishAdapter.OnItemClickListener? = null
@@ -89,12 +90,17 @@ class FinishAdapter(private var finishList: MutableList<FinishEntity>):
         if(getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
-        val finish: FinishEntity = finishList[pos]   //position 换为pos
-        val resid =imgMap.filter { finish.getFileType().toString() in it.key }
-        holder.fileType.setImageResource(resid.values.toIntArray()[0])
-        holder.fileName.text = finish.getFileName()
-        holder.fileSize.text = finish.getFileSize()
-        holder.finishTime.text = finish.getFinishTime()
+        val finish: Task = finishList[pos]   //position 换为pos
+        val resid =imgMap.filter { finish.file_type in it.key }
+        if(resid.isEmpty()){//没有匹配到文件
+            holder.fileType.setImageResource(R.drawable.file_unknown)
+        }else
+        {
+            holder.fileType.setImageResource(resid.values.toIntArray()[0])
+        }
+        holder.fileName.text = finish.file_name
+        holder.fileSize.text = finish.file_size
+        holder.finishTime.text = finish.finish_time
     }
 
     override fun getItemCount(): Int {
@@ -108,7 +114,7 @@ class FinishAdapter(private var finishList: MutableList<FinishEntity>):
         /**
          * 接口中的点击每一项的实现方法，参数自己定义
          */
-        fun OnItemClick(view: View?, data: FinishEntity?)
+        fun OnItemClick(view: View?, data: Task?)
     }
 
     fun setOnItemClickListener(onItemClickListener: FinishAdapter.OnItemClickListener?) {

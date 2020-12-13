@@ -11,10 +11,11 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
+import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_download.view.*
 
 
-class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
+class DownLoadAdapter(private var downloadList: MutableList<Task>) :
     RecyclerView.Adapter<DownLoadAdapter.DownLoadViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: DownLoadAdapter.OnItemClickListener? = null
@@ -33,7 +34,7 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
         "ppt" to R.drawable.file_ppt_office, "rtf" to R.drawable.file_rtf,
         "txt" to R.drawable.file_txt, "unknown" to R.drawable.file_unknown,
         "video" to R.drawable.file_video, "doc" to R.drawable.file_word_office,
-        "zip" to R.drawable.file_zip
+        "zip" to R.drawable.file_zip,
     )
 
     //set Header
@@ -43,35 +44,35 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
 
     @SuppressLint("UseCompatLoadingForDrawables")
     inner class DownLoadViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-          lateinit var fileType: ImageView
-          lateinit var pause: ImageView
-          lateinit var fileName: TextView
-          lateinit var downloadProcess: TextView
-          lateinit var fileSpeed: TextView
+        lateinit var fileType: ImageView
+        lateinit var pause: ImageView
+        lateinit var fileName: TextView
+        lateinit var downloadProcess: TextView
+        lateinit var fileSpeed: TextView
 
-         init {
-             if(itemView != mHeaderView)
-             {
-                 fileType  = itemView.findViewById(R.id.fileType)
-                 pause = itemView.findViewById(R.id.pause)
-                 fileName  = itemView.findViewById(R.id.fileName)
-                 downloadProcess  = itemView.findViewById(R.id.doenLoadText)
-                 fileSpeed  = itemView.findViewById(R.id.downloadSpeed)
-                 itemView.setOnClickListener { v -> //此处回传点击监听事件
-                     onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition))
-                 }
-                 //长按
-                 itemView.setOnLongClickListener { v ->
-                     mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
-                     true
-                 }
-                 itemView.pause.setOnClickListener{
-                     if(pause.drawable.constantState?.equals(pause.resources.getDrawable(R.drawable.start).constantState) == true) {
-                         pause.setImageResource(R.drawable.pause)
-                     }else{pause.setImageResource(R.drawable.start)}
-                 }
-             }
-         }
+        init {
+            if(itemView != mHeaderView)
+            {
+                fileType  = itemView.findViewById(R.id.fileType)
+                pause = itemView.findViewById(R.id.pause)
+                fileName  = itemView.findViewById(R.id.fileName)
+                downloadProcess  = itemView.findViewById(R.id.doenLoadText)
+                fileSpeed  = itemView.findViewById(R.id.downloadSpeed)
+                itemView.setOnClickListener { v -> //此处回传点击监听事件
+                    onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition))
+                }
+                //长按
+                itemView.setOnLongClickListener { v ->
+                    mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
+                    true
+                }
+                itemView.pause.setOnClickListener{
+                    if(pause.drawable.constantState?.equals(pause.resources.getDrawable(R.drawable.start).constantState) == true) {
+                        pause.setImageResource(R.drawable.pause)
+                    }else{pause.setImageResource(R.drawable.start)}
+                }
+            }
+        }
     }
 
     /**
@@ -81,7 +82,7 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
         /**
          * 接口中的点击每一项的实现方法，参数自己定义
          */
-        fun OnItemClick(view: View?, data: DownLoadEntity?)
+        fun OnItemClick(view: View?, data: Task?)
     }
 
 
@@ -95,7 +96,7 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DownLoadViewHolder {
-       //set Header
+        //set Header
         if(mHeaderView != null && viewType == TYPE_HEADER)
             return  DownLoadViewHolder(mHeaderView!!);
 
@@ -104,17 +105,23 @@ class DownLoadAdapter(private var downloadList: MutableList<DownLoadEntity>) :
         return DownLoadViewHolder(itemView)
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: DownLoadViewHolder, position: Int) {
         //set Header
         if(getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
-        val download: DownLoadEntity = downloadList[pos]   //position 换为pos
-        val resid =imgMap.filter { download.getFileType().toString() in it.key }
-        holder.fileType.setImageResource(resid.values.toIntArray()[0])
-        holder.fileName.text = download.getFileName()
-        holder.downloadProcess.text = download.getFileSize()
-        holder.fileSpeed.text = download.getDownLoadSpeed()
+        val download: Task = downloadList[pos]   //position 换为pos
+        val resid =imgMap.filter { download.file_type in it.key }
+        if(resid.isEmpty()){//没有匹配到文件
+            holder.fileType.setImageResource(R.drawable.file_unknown)
+        }else
+        {
+            holder.fileType.setImageResource(resid.values.toIntArray()[0])
+        }
+        holder.fileName.text = download.file_name
+        holder.downloadProcess.text = download.file_size
+        holder.fileSpeed.text = "100kb/s"
     }
 
     override fun getItemCount(): Int {

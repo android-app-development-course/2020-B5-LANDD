@@ -10,9 +10,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.R
+import com.example.landd.database.host.HostDataBases
+import com.example.landd.database.host.HostRepository
 import com.example.landd.logic.model.Host
 import com.example.landd.logic.model.State
 import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
@@ -31,16 +34,20 @@ class HostFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        hostViewModel = ViewModelProvider(this).get(HostViewModel::class.java)
+        val dao = context?.let { HostDataBases.getInstance(it).hostDao }
+        val repository = dao?.let { HostRepository(it) }
+        hostViewModel = ViewModelProviders.of(requireActivity(),
+            repository?.let { HostViewModelFactory(it) }).
+        get(HostViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_host, container, false)
 
         val recyclerView = root.findViewById<RecyclerView>(R.id.hostRecyclerView)
         hostViewModel.hostList.addAll(
             arrayListOf(
-                Host("192.168.123.1", 1234, "", State.CONNECTED),
-                Host("192.168.123.2", 1234, "", State.UNUSED),
-                Host("192.168.123.3", 1234, "", State.UNAUTHORIZED),
-                Host("192.168.123.4", 1234, "", State.DISCONNECTED)
+                Host(1,"192.168.123.1", 1234, "", State.CONNECTED),
+                Host(2,"192.168.123.2", 1234, "", State.UNUSED),
+                Host(3,"192.168.123.3", 1234, "", State.UNAUTHORIZED),
+                Host(4,"192.168.123.4", 1234, "", State.DISCONNECTED)
             )
         )
 
@@ -69,7 +76,7 @@ class HostFragment : Fragment() {
                         port = result[1].toInt()
                     } catch (e: NumberFormatException) {
                     }
-                    hostViewModel.hostList.add(Host(ip, port, "", State.CONNECTING))
+                    hostViewModel.hostList.add(Host(1,ip, port, "", State.CONNECTING))
                     recyclerView.adapter!!.notifyDataSetChanged()
                     return@OnInputDialogButtonClickListener false
                 })

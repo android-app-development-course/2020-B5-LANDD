@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.LANDD" parent="Theme.MaterialComponents.Light">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#5C6BC0</item>
-        <item name="colorPrimaryVariant">#393939</item>
+        <item name="colorPrimary">#80CBC4</item>
+        <item name="colorPrimaryVariant">#79BCB5</item>
         <item name="colorOnPrimary">#EC407A</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">#494949</item>

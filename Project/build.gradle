@@ -2,10 +2,10 @@
 buildscript {
     ext.kotlin_version = "1.4.10"
     repositories {
-        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
-        maven { url "http://maven.aliyun.com/nexus/content/repositories/jcenter/" }
         google()
         jcenter()
+        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+        maven { url "http://maven.aliyun.com/nexus/content/repositories/jcenter/" }
         maven { url "https://jitpack.io" }
         maven {
             url  "http://dl.bintray.com/lukaville/maven"
@@ -22,10 +22,10 @@ buildscript {
 
 allprojects {
     repositories {
-        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
-        maven { url "http://maven.aliyun.com/nexus/content/repositories/jcenter/" }
         google()
         jcenter()
+        maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+        maven { url "http://maven.aliyun.com/nexus/content/repositories/jcenter/" }
         maven { url "https://jitpack.io" }
         maven {
             url  "http://dl.bintray.com/lukaville/maven"

@@ -16,7 +16,6 @@ import com.example.landd.LANDDApplication
 import com.example.landd.R
 import com.example.landd.logic.model.Host
 import com.example.landd.logic.model.State
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
 import com.kongzue.dialog.util.InputInfo

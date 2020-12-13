@@ -2,6 +2,7 @@ package com.example.landd.ui.task
 
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -16,9 +17,13 @@ import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.R
+import com.example.landd.database.task.TaskDataBases
+import com.example.landd.database.task.TaskRepository
+import com.example.landd.logic.model.Task
 import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
 import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
@@ -29,8 +34,8 @@ import com.melnykov.fab.FloatingActionButton
 class TaskFragment : Fragment() {
 
     private lateinit var taskViewModel: TaskViewModel
-    private val  downLoadList:MutableList<DownLoadEntity> = ArrayList()
-    private val finishList:MutableList<FinishEntity> = ArrayList()
+    private val  downLoadList:MutableList<Task> = ArrayList()
+    private val finishList:MutableList<Task> = ArrayList()
     //set Header
      var adapter: DownLoadAdapter? =null
      var adapter2:FinishAdapter ?=null
@@ -43,8 +48,11 @@ class TaskFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        taskViewModel =
-            ViewModelProvider(this).get(TaskViewModel::class.java)
+        val dao = context?.let { TaskDataBases.getInstance(it).taskDao }
+        val repository = dao?.let { TaskRepository(it) }
+        taskViewModel = ViewModelProviders.of(requireActivity(),
+            repository?.let { TaskViewModelFactory(it) }).
+        get(TaskViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_task, container, false)
         taskViewModel.text.observe(viewLifecycleOwner, Observer {
         })
@@ -66,8 +74,7 @@ class TaskFragment : Fragment() {
                                 .setFontSize(16)
                         )
                         .setMultipleLines(true)//支持多行输入
-                )
-                .setBackgroundColor(Color.TRANSPARENT)
+                ).backgroundColor = Color.TRANSPARENT
         }
 
         //下载页面
@@ -83,7 +90,7 @@ class TaskFragment : Fragment() {
         //RecyclerView中没有item的监听事件，需要自己在适配器中写一个监听事件的接口。参数根据自定义
         adapter!!.setOnItemClickListener(object : DownLoadAdapter.OnItemClickListener {
             @SuppressLint("ShowToast")
-            override fun OnItemClick(view: View?, data: DownLoadEntity?) {
+            override fun OnItemClick(view: View?, data: Task?) {
                 Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT).show()
             }
         })
@@ -116,7 +123,7 @@ class TaskFragment : Fragment() {
         //RecyclerView中没有item的监听事件，需要自己在适配器中写一个监听事件的接口。参数根据自定义
         adapter2!!.setOnItemClickListener(object : FinishAdapter.OnItemClickListener {
             @SuppressLint("ShowToast")
-            override fun OnItemClick(view: View?, data: FinishEntity?) {
+            override fun OnItemClick(view: View?, data: Task?) {
                 Toast.makeText(context, "点击了item", Toast.LENGTH_SHORT).show()
             }
         })
@@ -140,14 +147,14 @@ class TaskFragment : Fragment() {
 
     private fun initDownLoadContents() {
         for (i in 0..2) {
-            val l1 = DownLoadEntity(
-                "11:00", "1.txt",
-                "txt", "1MB", "50%", "1MB/s"
+            val l1 = Task(
+                 i, "1.txt",
+                "1MB", "txt", "2020-11-10 0:04", false
             )
             downLoadList.add(l1)
-            val l2 = DownLoadEntity(
-                "13:30", "weixin.exe", "exe",
-                "199MB", "20%", "800KB/s"
+            val l2 = Task(
+                i, "weixin.exe", "199MB",
+                "exe", "2020-12-10 0:04", false
             )
             downLoadList.add(l2)
         }
@@ -155,14 +162,14 @@ class TaskFragment : Fragment() {
 
     private fun initFinishContents() {
         for (i in 0..2) {
-            val l1 = FinishEntity(
-                "电影鉴赏.ppt", "ppt",
-                "12MB", "2020-11-10 0:04"
+            val l1 = Task(
+                i, "电影鉴赏.ppt", "12MB",
+                "ppt", "2020-11-10 0:04",true
             )
             finishList.add(l1)
-            val l2 = FinishEntity(
-                "软件测试.xlxs", "xlsx",
-                "10MB", "2020-11-20 12:00"
+            val l2 = Task(
+                i,"软件测试.xlxs", "10MB",
+                "xlsx", "2020-11-20 12:00",true
             )
             finishList.add(l2)
         }
