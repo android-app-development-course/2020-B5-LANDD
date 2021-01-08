@@ -2,7 +2,6 @@ package com.example.landd.ui.task
 
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
@@ -10,56 +9,59 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AbsListView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.DownloadUtil
 import com.example.landd.R
-import com.example.landd.database.task.TaskDataBases
-import com.example.landd.database.task.TaskRepository
 import com.example.landd.logic.model.Task
+import com.example.landd.ui.host.HostViewModel
 import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
 import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
 import com.kongzue.dialog.v3.InputDialog
 import com.melnykov.fab.FloatingActionButton
+import kotlin.concurrent.thread
 
 
 class TaskFragment : Fragment() {
 
     private lateinit var taskViewModel: TaskViewModel
-    private val  downLoadList:MutableList<Task> = ArrayList()
-    private val finishList:MutableList<Task> = ArrayList()
+    private val downLoadList: MutableList<Task> = ArrayList()
+    private val finishList: MutableList<Task> = ArrayList()
+
     //set Header
-     var adapter: DownLoadAdapter? =null
-     var adapter2:FinishAdapter ?=null
+    var adapter: DownLoadAdapter? = null
+    var adapter2: FinishAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val dao = context?.let { TaskDataBases.getInstance(it).taskDao }
-        val repository = dao?.let { TaskRepository(it) }
-        taskViewModel = ViewModelProviders.of(requireActivity(),
-            repository?.let { TaskViewModelFactory(it) }).
-        get(TaskViewModel::class.java)
+        taskViewModel = ViewModelProvider(this).get(TaskViewModel::class.java)
+
         val root = inflater.inflate(R.layout.fragment_task, container, false)
-        taskViewModel.text.observe(viewLifecycleOwner, Observer {
-        })
         val fab: FloatingActionButton = root.findViewById(R.id.fab) as FloatingActionButton
         fab.setOnClickListener {
             InputDialog.show(activity as AppCompatActivity, "新建任务", "请输入网址url", "确定", "取消")
                 .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
+                    thread {
+                        DownloadUtil.newTask("https://www.baidu.com")
+                        activity?.runOnUiThread {
+                            taskViewModel.getDownLoad()
+                            adapter?.notifyDataSetChanged()
+                        }
+                    }
+
                     return@OnInputDialogButtonClickListener false
                 })
                 .setOnCancelButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
@@ -81,9 +83,9 @@ class TaskFragment : Fragment() {
         Log.d("where", "after initContents()")
         initDownLoadContents()
         val linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        val download:RecyclerView=root.findViewById(R.id.DownLoad)
+        val download: RecyclerView = root.findViewById(R.id.DownLoad)
         download.layoutManager = linearLayoutManager
-        adapter=DownLoadAdapter(downLoadList)
+        adapter = DownLoadAdapter(downLoadList)
         download.adapter = adapter
         setHeader(download);
 
@@ -113,10 +115,10 @@ class TaskFragment : Fragment() {
 
         //完成页面
         initFinishContents()
-        val finish:RecyclerView=root.findViewById(R.id.Finish)
+        val finish: RecyclerView = root.findViewById(R.id.Finish)
         val linearLayoutManager2 = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         finish.layoutManager = linearLayoutManager2
-        adapter2=FinishAdapter(finishList)
+        adapter2 = FinishAdapter(finishList)
         finish.adapter = adapter2
         setHeader2(finish);
 
@@ -148,12 +150,12 @@ class TaskFragment : Fragment() {
     private fun initDownLoadContents() {
         for (i in 0..2) {
             val l1 = Task(
-                 i, "1.txt",
-                "1MB", "txt", "2020-11-10 0:04", false
+                "", "1.txt",
+                1234, "txt", "2020-11-10 0:04", false
             )
             downLoadList.add(l1)
             val l2 = Task(
-                i, "weixin.exe", "199MB",
+                "", "weixin.exe", 1234,
                 "exe", "2020-12-10 0:04", false
             )
             downLoadList.add(l2)
@@ -163,17 +165,18 @@ class TaskFragment : Fragment() {
     private fun initFinishContents() {
         for (i in 0..2) {
             val l1 = Task(
-                i, "电影鉴赏.ppt", "12MB",
-                "ppt", "2020-11-10 0:04",true
+                "", "电影鉴赏.ppt", 1234,
+                "ppt", "2020-11-10 0:04", true
             )
             finishList.add(l1)
             val l2 = Task(
-                i,"软件测试.xlxs", "10MB",
-                "xlsx", "2020-11-20 12:00",true
+                "", "软件测试.xlxs", 1234,
+                "xlsx", "2020-11-20 12:00", true
             )
             finishList.add(l2)
         }
     }
+
     //set Header 下载
     private fun setHeader(view: RecyclerView) {
         val header: View = LayoutInflater.from(context).inflate(R.layout.header, view, false)

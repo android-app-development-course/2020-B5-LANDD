@@ -12,9 +12,12 @@ interface TaskDao {
     @Delete
     suspend fun delete(task: Task?)
 
+    @Update
+    suspend fun update(task: Task)
+
     @Query("SELECT * FROM task_table where has_finish=0")
-    fun findUnFinishedAll (): LiveData<List<Task>>
+    fun findUnFinishedAll (): List<Task>
 
     @Query("SELECT * FROM task_table where has_finish=1")
-    fun findFinishedAll (): LiveData<List<Task>>
+    fun findFinishedAll (): List<Task>
 }

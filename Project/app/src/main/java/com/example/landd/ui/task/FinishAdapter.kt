@@ -12,15 +12,16 @@ import com.example.landd.R
 import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_finish.view.*
 
-class FinishAdapter(private var finishList: MutableList<Task>):
+class FinishAdapter(private var finishList: MutableList<Task>) :
     RecyclerView.Adapter<FinishAdapter.FinishViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: FinishAdapter.OnItemClickListener? = null
+
     //长按
     var mOnLongItemClickListener: FinishAdapter.OnRecyclerViewLongItemClickListener? = null
 
     //文件类型对应的资源文件
-    private var imgMap=mapOf(
+    private var imgMap = mapOf(
         "chm" to R.drawable.file_chm,
         "code" to R.drawable.file_code, "css" to R.drawable.file_css,
         "csv" to R.drawable.file_csv, "dmg" to R.drawable.file_dmg,
@@ -41,33 +42,32 @@ class FinishAdapter(private var finishList: MutableList<Task>):
 
     inner class FinishViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         lateinit var fileType: ImageView
-        lateinit var del:ImageView
+        lateinit var del: ImageView
         lateinit var fileName: TextView
         lateinit var fileSize: TextView
         lateinit var finishTime: TextView
 
         init {
-            if(itemView != mHeaderView)
-            {
-                fileType  = itemView.findViewById(R.id.Finish_fileType)
+            if (itemView != mHeaderView) {
+                fileType = itemView.findViewById(R.id.Finish_fileType)
                 del = itemView.findViewById(R.id.deleteView)
-                fileName  = itemView.findViewById(R.id.file_name_finish)
-                fileSize  = itemView.findViewById(R.id.file_size_finish)
-                finishTime  = itemView.findViewById(R.id.finish_time)
+                fileName = itemView.findViewById(R.id.file_name_finish)
+                fileSize = itemView.findViewById(R.id.file_size_finish)
+                finishTime = itemView.findViewById(R.id.finish_time)
                 itemView.setOnClickListener { v -> //此处回传点击监听事件
-                    onItemClickListener?.OnItemClick(v, finishList.get(layoutPosition))
+                    onItemClickListener?.OnItemClick(v, finishList.get(layoutPosition - 1))
                 }
                 //长按
                 itemView.setOnLongClickListener { v ->
                     mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
                     true
                 }
-                itemView.deleteView.setOnClickListener{
-                    if(finishList.size>0) {
-                        finishList.removeAt(position-1);
+                itemView.deleteView.setOnClickListener {
+                    if (finishList.size > 0) {
+                        finishList.removeAt(position - 1);
                         notifyItemRemoved(position);
                         //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
-                        notifyItemRangeChanged(position, finishList.size- position);
+                        notifyItemRangeChanged(position, finishList.size - position);
                         //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -77,8 +77,8 @@ class FinishAdapter(private var finishList: MutableList<Task>):
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FinishViewHolder {
         //set Header
-        if(mHeaderView != null && viewType == TYPE_HEADER)
-            return  FinishViewHolder(mHeaderView!!);
+        if (mHeaderView != null && viewType == TYPE_HEADER)
+            return FinishViewHolder(mHeaderView!!);
 
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView: View = layoutInflater.inflate(R.layout.cell_finish, parent, false)
@@ -87,24 +87,23 @@ class FinishAdapter(private var finishList: MutableList<Task>):
 
     override fun onBindViewHolder(holder: FinishViewHolder, position: Int) {
         //set Header
-        if(getItemViewType(position) == TYPE_HEADER) return;
+        if (getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
         val finish: Task = finishList[pos]   //position 换为pos
-        val resid =imgMap.filter { finish.file_type in it.key }
-        if(resid.isEmpty()){//没有匹配到文件
+        val resid = imgMap.filter { finish.file_type in it.key }
+        if (resid.isEmpty()) {//没有匹配到文件
             holder.fileType.setImageResource(R.drawable.file_unknown)
-        }else
-        {
+        } else {
             holder.fileType.setImageResource(resid.values.toIntArray()[0])
         }
         holder.fileName.text = finish.file_name
-        holder.fileSize.text = finish.file_size
+        holder.fileSize.text = finish.file_size.toString()
         holder.finishTime.text = finish.finish_time
     }
 
     override fun getItemCount(): Int {
-        return if (mHeaderView == null) finishList.size else finishList.size+ 1
+        return if (mHeaderView == null) finishList.size else finishList.size + 1
     }
 
     /**
@@ -141,7 +140,7 @@ class FinishAdapter(private var finishList: MutableList<Task>):
         return if (position == 0) TYPE_HEADER else TYPE_NORMAL
     }
 
-    fun getRealPosition(holder:FinishAdapter.FinishViewHolder): Int {
+    fun getRealPosition(holder: FinishAdapter.FinishViewHolder): Int {
         val position = holder.layoutPosition
         return if (mHeaderView == null) position else position - 1
     }

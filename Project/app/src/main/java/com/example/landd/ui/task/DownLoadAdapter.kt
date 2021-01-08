@@ -19,11 +19,12 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
     RecyclerView.Adapter<DownLoadAdapter.DownLoadViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: DownLoadAdapter.OnItemClickListener? = null
+
     //长按
     var mOnLongItemClickListener: DownLoadAdapter.OnRecyclerViewLongItemClickListener? = null
 
     //文件类型对应的资源文件
-    private var imgMap=mapOf(
+    private var imgMap = mapOf(
         "chm" to R.drawable.file_chm,
         "code" to R.drawable.file_code, "css" to R.drawable.file_css,
         "csv" to R.drawable.file_csv, "dmg" to R.drawable.file_dmg,
@@ -51,25 +52,26 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
         lateinit var fileSpeed: TextView
 
         init {
-            if(itemView != mHeaderView)
-            {
-                fileType  = itemView.findViewById(R.id.fileType)
+            if (itemView != mHeaderView) {
+                fileType = itemView.findViewById(R.id.fileType)
                 pause = itemView.findViewById(R.id.pause)
-                fileName  = itemView.findViewById(R.id.fileName)
-                downloadProcess  = itemView.findViewById(R.id.doenLoadText)
-                fileSpeed  = itemView.findViewById(R.id.downloadSpeed)
+                fileName = itemView.findViewById(R.id.fileName)
+                downloadProcess = itemView.findViewById(R.id.doenLoadText)
+                fileSpeed = itemView.findViewById(R.id.downloadSpeed)
                 itemView.setOnClickListener { v -> //此处回传点击监听事件
-                    onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition))
+                    onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition - 1))
                 }
                 //长按
                 itemView.setOnLongClickListener { v ->
                     mOnLongItemClickListener?.onLongItemClick(v, adapterPosition)
                     true
                 }
-                itemView.pause.setOnClickListener{
-                    if(pause.drawable.constantState?.equals(pause.resources.getDrawable(R.drawable.start).constantState) == true) {
+                itemView.pause.setOnClickListener {
+                    if (pause.drawable.constantState?.equals(pause.resources.getDrawable(R.drawable.start).constantState) == true) {
                         pause.setImageResource(R.drawable.pause)
-                    }else{pause.setImageResource(R.drawable.start)}
+                    } else {
+                        pause.setImageResource(R.drawable.start)
+                    }
                 }
             }
         }
@@ -97,8 +99,8 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DownLoadViewHolder {
         //set Header
-        if(mHeaderView != null && viewType == TYPE_HEADER)
-            return  DownLoadViewHolder(mHeaderView!!);
+        if (mHeaderView != null && viewType == TYPE_HEADER)
+            return DownLoadViewHolder(mHeaderView!!);
 
         val layoutInflater = LayoutInflater.from(parent.context)
         val itemView: View = layoutInflater.inflate(R.layout.cell_download, parent, false)
@@ -108,25 +110,24 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: DownLoadViewHolder, position: Int) {
         //set Header
-        if(getItemViewType(position) == TYPE_HEADER) return;
+        if (getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
         val download: Task = downloadList[pos]   //position 换为pos
-        val resid =imgMap.filter { download.file_type in it.key }
-        if(resid.isEmpty()){//没有匹配到文件
+        val resid = imgMap.filter { download.file_type in it.key }
+        if (resid.isEmpty()) {//没有匹配到文件
             holder.fileType.setImageResource(R.drawable.file_unknown)
-        }else
-        {
+        } else {
             holder.fileType.setImageResource(resid.values.toIntArray()[0])
         }
         holder.fileName.text = download.file_name
-        holder.downloadProcess.text = download.file_size
+        holder.downloadProcess.text = download.file_size.toString()
         holder.fileSpeed.text = "100kb/s"
     }
 
     override fun getItemCount(): Int {
         //return downloadList.size
-        return if (mHeaderView == null) downloadList.size else downloadList.size+ 1
+        return if (mHeaderView == null) downloadList.size else downloadList.size + 1
     }
 
     //set Hearder

@@ -10,12 +10,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.R
-import com.example.landd.database.host.HostDataBases
-import com.example.landd.database.host.HostRepository
+import com.example.landd.database.AppDataBase
 import com.example.landd.logic.model.Host
 import com.example.landd.logic.model.State
 import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
@@ -23,6 +21,9 @@ import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
 import com.kongzue.dialog.v3.InputDialog
 import com.melnykov.fab.FloatingActionButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.lang.NumberFormatException
 
 class HostFragment : Fragment() {
@@ -34,26 +35,20 @@ class HostFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val dao = context?.let { HostDataBases.getInstance(it).hostDao }
-        val repository = dao?.let { HostRepository(it) }
-        hostViewModel = ViewModelProviders.of(requireActivity(),
-            repository?.let { HostViewModelFactory(it) }).
-        get(HostViewModel::class.java)
+        hostViewModel = ViewModelProvider(this).get(HostViewModel::class.java)
+
         val root = inflater.inflate(R.layout.fragment_host, container, false)
 
         val recyclerView = root.findViewById<RecyclerView>(R.id.hostRecyclerView)
-        hostViewModel.hostList.addAll(
-            arrayListOf(
-                Host(1,"192.168.123.1", 1234, "", State.CONNECTED),
-                Host(2,"192.168.123.2", 1234, "", State.UNUSED),
-                Host(3,"192.168.123.3", 1234, "", State.UNAUTHORIZED),
-                Host(4,"192.168.123.4", 1234, "", State.DISCONNECTED)
-            )
-        )
 
         val layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = HostAdapter(this, hostViewModel.hostList)
         recyclerView.layoutManager = layoutManager
+        hostViewModel.hostList.observe(requireActivity()) {
+            recyclerView.adapter!!.notifyDataSetChanged()
+        }
+        hostViewModel.refreshHostListInIOThread()
+
 
         val hostFab = root.findViewById<FloatingActionButton>(R.id.hostFab)
         hostFab.setOnClickListener {
@@ -64,7 +59,7 @@ class HostFragment : Fragment() {
                 "确定",
                 "取消"
             )
-                .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
+                .setOnOkButtonClickListener(OnInputDialogButtonClickListener { _, _, inputStr ->
                     val result = inputStr.split(":")
                     if (result.size != 2) {
                         Toast.makeText(context, "输入应该为 ip:post 的形式", Toast.LENGTH_SHORT).show()
@@ -75,9 +70,14 @@ class HostFragment : Fragment() {
                     try {
                         port = result[1].toInt()
                     } catch (e: NumberFormatException) {
+                        Toast.makeText(context, "不正确的端口", Toast.LENGTH_SHORT).show()
+                        return@OnInputDialogButtonClickListener false
                     }
-                    hostViewModel.hostList.add(Host(1,ip, port, "", State.CONNECTING))
-                    recyclerView.adapter!!.notifyDataSetChanged()
+                    val host = Host(ip, port, "", "", State.CONNECTING)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        AppDataBase.getDatabase().hostDao().insert(host)
+                        hostViewModel.refreshHostList()
+                    }
                     return@OnInputDialogButtonClickListener false
                 })
                 .setOnCancelButtonClickListener(OnInputDialogButtonClickListener { _, _, _ ->
@@ -87,8 +87,7 @@ class HostFragment : Fragment() {
                     InputInfo().setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
                         .setTextInfo(TextInfo().setFontColor(Color.DKGRAY).setFontSize(16))
                         .setMultipleLines(true)
-                )
-                .setBackgroundColor(Color.TRANSPARENT)
+                ).backgroundColor = Color.TRANSPARENT
         }
         return root
     }

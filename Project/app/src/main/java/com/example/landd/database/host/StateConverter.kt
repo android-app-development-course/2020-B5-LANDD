@@ -14,4 +14,3 @@ object StateConverter {
     fun toState(ordinal: Int): State = State.values().first { it.ordinal == ordinal }
 
 }
-

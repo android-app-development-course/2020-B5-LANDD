@@ -13,5 +13,5 @@ interface HostDao {
     @Delete
     suspend fun delete(host: Host?)
     @Query("SELECT * FROM host_table")
-    fun findAll (): LiveData<List<Host>>
+    suspend fun findAll (): List<Host>
 }

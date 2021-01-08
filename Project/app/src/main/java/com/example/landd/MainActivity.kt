@@ -1,6 +1,5 @@
 package com.example.landd
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -28,8 +27,9 @@ class MainActivity : AppCompatActivity() {
             AppBarConfiguration(setOf(R.id.navigation_task, R.id.navigation_host))
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
-
+        DownloadUtil.startProxyServer(8001)
     }
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.set_menu, menu)

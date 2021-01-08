@@ -11,9 +11,12 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.DownloadUtil
 import com.example.landd.LANDDApplication
 import com.example.landd.R
+import com.example.landd.database.AppDataBase
 import com.example.landd.logic.model.Host
 import com.example.landd.logic.model.State
 import com.google.android.material.switchmaterial.SwitchMaterial
@@ -21,8 +24,11 @@ import com.kongzue.dialog.interfaces.OnInputDialogButtonClickListener
 import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
 import com.kongzue.dialog.v3.InputDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
-class HostAdapter(private val fragment: HostFragment, private val hostList: ArrayList<Host>) :
+class HostAdapter(private val fragment: HostFragment, private val hostList: LiveData<List<Host>>) :
     RecyclerView.Adapter<HostAdapter.ViewHolder>() {
     inner class ViewHolder(view: View, val refreshAnimation: Animation) :
         RecyclerView.ViewHolder(view) {
@@ -32,6 +38,23 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Arra
         val hostWarning: ImageView = view.findViewById(R.id.hostWarning)
         val hostSocket: TextView = view.findViewById(R.id.hostSocket)
         val hostStatusText: TextView = view.findViewById(R.id.hostStatusText)
+    }
+
+    private fun syncToDB(host: Host) {
+        GlobalScope.launch(Dispatchers.IO) {
+            AppDataBase.getDatabase().hostDao().update(host)
+        }
+    }
+
+    private suspend fun connect(host: Host) {
+        if (DownloadUtil.testProxyServer(host.ip, host.port)) {
+            host.state = State.CONNECTED
+        } else {
+            host.state = State.DISCONNECTED
+        }
+        fragment.requireActivity().runOnUiThread {
+            notifyDataSetChanged()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -44,7 +67,7 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Arra
 
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val host = hostList[position]
+        val host = hostList.value!![position]
         holder.hostSocket.text = "${host.ip}:${host.port}"
         when (host.state) {
             State.CONNECTED -> {
@@ -106,8 +129,21 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Arra
                 holder.hostUse.isChecked = false
             }
         }
+        if (host.state == State.CONNECTING) {
+            GlobalScope.launch(Dispatchers.IO) {
+                if (DownloadUtil.testProxyServer(host.ip, host.port)) {
+                    host.state = State.CONNECTED
+                } else {
+                    host.state = State.DISCONNECTED
+                }
+                fragment.requireActivity().runOnUiThread {
+                    notifyDataSetChanged()
+                }
+            }
+        }
         holder.hostUse.setOnCheckedChangeListener { _, isChecked ->
-            host.state = if (isChecked) State.DISCONNECTED else State.UNUSED
+            host.state = if (isChecked) State.CONNECTING else State.UNUSED
+            syncToDB(host)
             notifyDataSetChanged()
         }
         holder.hostWarning.setOnClickListener { _ ->
@@ -135,16 +171,14 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Arra
                         )
                         .setBackgroundColor(Color.TRANSPARENT)
                 }
+                host.state = State.DISCONNECTED
             } else {
                 host.state = State.CONNECTING
                 notifyDataSetChanged()
             }
-        }
-        holder.hostRefresh.setOnClickListener {
-            host.state = State.CONNECTED
-            notifyDataSetChanged()
+            syncToDB(host)
         }
     }
 
-    override fun getItemCount() = hostList.size
+    override fun getItemCount() = hostList.value?.size ?: 0
 }
