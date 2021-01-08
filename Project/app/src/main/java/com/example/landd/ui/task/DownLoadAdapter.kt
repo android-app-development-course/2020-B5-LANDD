@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
@@ -15,7 +16,7 @@ import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_download.view.*
 
 
-class DownLoadAdapter(private var downloadList: MutableList<Task>) :
+class DownLoadAdapter(private var downloadList: LiveData<List<Task>>) :
     RecyclerView.Adapter<DownLoadAdapter.DownLoadViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: DownLoadAdapter.OnItemClickListener? = null
@@ -59,7 +60,9 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
                 downloadProcess = itemView.findViewById(R.id.doenLoadText)
                 fileSpeed = itemView.findViewById(R.id.downloadSpeed)
                 itemView.setOnClickListener { v -> //此处回传点击监听事件
-                    onItemClickListener?.OnItemClick(v, downloadList.get(layoutPosition - 1))
+                    downloadList.value?.let {
+                        onItemClickListener?.OnItemClick(v, it[layoutPosition - 1])
+                    }
                 }
                 //长按
                 itemView.setOnLongClickListener { v ->
@@ -113,7 +116,7 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
         if (getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
-        val download: Task = downloadList[pos]   //position 换为pos
+        val download: Task = downloadList.value!![pos]   //position 换为pos
         val resid = imgMap.filter { download.file_type in it.key }
         if (resid.isEmpty()) {//没有匹配到文件
             holder.fileType.setImageResource(R.drawable.file_unknown)
@@ -121,13 +124,17 @@ class DownLoadAdapter(private var downloadList: MutableList<Task>) :
             holder.fileType.setImageResource(resid.values.toIntArray()[0])
         }
         holder.fileName.text = download.file_name
-        holder.downloadProcess.text = download.file_size.toString()
+        holder.downloadProcess.text = TaskUtil.pretty(download.file_size)
         holder.fileSpeed.text = "100kb/s"
     }
 
     override fun getItemCount(): Int {
         //return downloadList.size
-        return if (mHeaderView == null) downloadList.size else downloadList.size + 1
+        downloadList.value?.let {
+            return if (mHeaderView == null) it.size else it.size + 1
+        }
+        return 0
+
     }
 
     //set Hearder

@@ -11,11 +11,10 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class HostViewModel : ViewModel() {
-    private val _hostList = MutableLiveData<List<Host>>()
-    val hostList: LiveData<List<Host>> = Transformations.map(_hostList) { it }
+    val hostList = MutableLiveData<List<Host>>()
 
     public suspend fun refreshHostList() {
-        _hostList.postValue(AppDataBase.getDatabase().hostDao().findAll())
+        hostList.postValue(AppDataBase.getDatabase().hostDao().findAll())
     }
 
     public fun refreshHostListInIOThread() {

@@ -2,30 +2,30 @@ package com.example.landd.ui.task
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import com.example.landd.database.AppDataBase
+import com.example.landd.logic.model.Host
 import com.example.landd.logic.model.Task
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
+    val downloadingTaskList = MutableLiveData<List<Task>>()
+    val finishedTaskList = MutableLiveData<MutableList<Task>>()
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is task Fragment"
-    }
-    val text: LiveData<String> = _text
-    //DownLoad
-    private val download: MutableLiveData<Task> = MutableLiveData<Task>()
-    fun setDownLoad(item: Task) {
-        download.setValue(item)
-    }
-    fun getDownLoad(): LiveData<Task>? {
-        return download
+    public suspend fun refreshTaskList() {
+        downloadingTaskList.postValue(AppDataBase.getDatabase().taskDao().findUnFinishedAll())
+        val list = mutableListOf<Task>()
+        list.addAll(AppDataBase.getDatabase().taskDao().findFinishedAll())
+        finishedTaskList.postValue(list)
     }
 
-    //Finish
-    private val finish: MutableLiveData<Task> = MutableLiveData<Task>()
-    fun setFinish(item: Task) {
-        finish.setValue(item)
+    public fun refreshTaskListInIOThread() {
+        GlobalScope.launch(Dispatchers.IO) {
+            refreshTaskList()
+        }
     }
-    fun getFinish(): LiveData<Task>? {
-        return finish
-    }
+
 }

@@ -25,6 +25,9 @@ import com.kongzue.dialog.util.InputInfo
 import com.kongzue.dialog.util.TextInfo
 import com.kongzue.dialog.v3.InputDialog
 import com.melnykov.fab.FloatingActionButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 
 
@@ -48,36 +51,8 @@ class TaskFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         taskViewModel = ViewModelProvider(this).get(TaskViewModel::class.java)
-
         val root = inflater.inflate(R.layout.fragment_task, container, false)
-        val fab: FloatingActionButton = root.findViewById(R.id.fab) as FloatingActionButton
-        fab.setOnClickListener {
-            InputDialog.show(activity as AppCompatActivity, "新建任务", "请输入网址url", "确定", "取消")
-                .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
-                    thread {
-                        DownloadUtil.newTask("https://www.baidu.com")
-                        activity?.runOnUiThread {
-                            taskViewModel.getDownLoad()
-                            adapter?.notifyDataSetChanged()
-                        }
-                    }
 
-                    return@OnInputDialogButtonClickListener false
-                })
-                .setOnCancelButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
-                    return@OnInputDialogButtonClickListener false
-                })
-                .setInputInfo(
-                    InputInfo()
-                        .setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
-                        .setTextInfo(
-                            TextInfo()  //设置文字样式
-                                .setFontColor(Color.DKGRAY)
-                                .setFontSize(16)
-                        )
-                        .setMultipleLines(true)//支持多行输入
-                ).backgroundColor = Color.TRANSPARENT
-        }
 
         //下载页面
         Log.d("where", "after initContents()")
@@ -85,9 +60,12 @@ class TaskFragment : Fragment() {
         val linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         val download: RecyclerView = root.findViewById(R.id.DownLoad)
         download.layoutManager = linearLayoutManager
-        adapter = DownLoadAdapter(downLoadList)
+        adapter = DownLoadAdapter(taskViewModel.downloadingTaskList)
         download.adapter = adapter
-        setHeader(download);
+        setHeader(download)
+        taskViewModel.downloadingTaskList.observe(requireActivity()) {
+            download.adapter!!.notifyDataSetChanged()
+        }
 
         //RecyclerView中没有item的监听事件，需要自己在适配器中写一个监听事件的接口。参数根据自定义
         adapter!!.setOnItemClickListener(object : DownLoadAdapter.OnItemClickListener {
@@ -118,9 +96,14 @@ class TaskFragment : Fragment() {
         val finish: RecyclerView = root.findViewById(R.id.Finish)
         val linearLayoutManager2 = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         finish.layoutManager = linearLayoutManager2
-        adapter2 = FinishAdapter(finishList)
+        adapter2 = FinishAdapter(taskViewModel.finishedTaskList)
         finish.adapter = adapter2
         setHeader2(finish);
+        taskViewModel.finishedTaskList.observe(requireActivity()) {
+            finish.adapter!!.notifyDataSetChanged()
+        }
+
+        taskViewModel.refreshTaskListInIOThread()
 
         //RecyclerView中没有item的监听事件，需要自己在适配器中写一个监听事件的接口。参数根据自定义
         adapter2!!.setOnItemClickListener(object : FinishAdapter.OnItemClickListener {
@@ -144,6 +127,32 @@ class TaskFragment : Fragment() {
                 }
             }
         })
+
+        val fab: FloatingActionButton = root.findViewById(R.id.fab) as FloatingActionButton
+        fab.setOnClickListener {
+            InputDialog.show(activity as AppCompatActivity, "新建任务", "请输入网址url", "确定", "取消")
+                .setOnOkButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
+                    GlobalScope.launch(Dispatchers.IO) {
+                        DownloadUtil.newTask(inputStr)
+                        taskViewModel.refreshTaskList()
+                    }
+                    return@OnInputDialogButtonClickListener false
+                })
+                .setOnCancelButtonClickListener(OnInputDialogButtonClickListener { baseDialog, v, inputStr ->
+                    return@OnInputDialogButtonClickListener false
+                })
+                .setInputInfo(
+                    InputInfo()
+                        .setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
+                        .setTextInfo(
+                            TextInfo()  //设置文字样式
+                                .setFontColor(Color.DKGRAY)
+                                .setFontSize(16)
+                        )
+                        .setMultipleLines(true)//支持多行输入
+                ).backgroundColor = Color.TRANSPARENT
+        }
+
         return root
     }
 

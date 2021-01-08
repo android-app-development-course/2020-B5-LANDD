@@ -46,17 +46,6 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Live
         }
     }
 
-    private suspend fun connect(host: Host) {
-        if (DownloadUtil.testProxyServer(host.ip, host.port)) {
-            host.state = State.CONNECTED
-        } else {
-            host.state = State.DISCONNECTED
-        }
-        fragment.requireActivity().runOnUiThread {
-            notifyDataSetChanged()
-        }
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.cell_host, parent, false)
         val refreshAnimation = AnimationUtils.loadAnimation(parent.context, R.anim.refresh)

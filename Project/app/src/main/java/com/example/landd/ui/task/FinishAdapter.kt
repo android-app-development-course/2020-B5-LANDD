@@ -6,13 +6,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
 import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_finish.view.*
 
-class FinishAdapter(private var finishList: MutableList<Task>) :
+class FinishAdapter(private var finishList: LiveData<MutableList<Task>>) :
     RecyclerView.Adapter<FinishAdapter.FinishViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: FinishAdapter.OnItemClickListener? = null
@@ -55,7 +56,9 @@ class FinishAdapter(private var finishList: MutableList<Task>) :
                 fileSize = itemView.findViewById(R.id.file_size_finish)
                 finishTime = itemView.findViewById(R.id.finish_time)
                 itemView.setOnClickListener { v -> //此处回传点击监听事件
-                    onItemClickListener?.OnItemClick(v, finishList.get(layoutPosition - 1))
+                    finishList.value?.let {
+                        onItemClickListener?.OnItemClick(v, it[layoutPosition - 1])
+                    }
                 }
                 //长按
                 itemView.setOnLongClickListener { v ->
@@ -63,11 +66,11 @@ class FinishAdapter(private var finishList: MutableList<Task>) :
                     true
                 }
                 itemView.deleteView.setOnClickListener {
-                    if (finishList.size > 0) {
-                        finishList.removeAt(position - 1);
+                    if (itemCount > 0) {
+                        finishList.value!!.removeAt(position - 1);
                         notifyItemRemoved(position);
                         //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
-                        notifyItemRangeChanged(position, finishList.size - position);
+                        notifyItemRangeChanged(position, finishList.value!!.size - position);
                         //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -90,7 +93,7 @@ class FinishAdapter(private var finishList: MutableList<Task>) :
         if (getItemViewType(position) == TYPE_HEADER) return;
         val pos = getRealPosition(holder)
 
-        val finish: Task = finishList[pos]   //position 换为pos
+        val finish: Task = finishList.value!![pos]   //position 换为pos
         val resid = imgMap.filter { finish.file_type in it.key }
         if (resid.isEmpty()) {//没有匹配到文件
             holder.fileType.setImageResource(R.drawable.file_unknown)
@@ -103,7 +106,10 @@ class FinishAdapter(private var finishList: MutableList<Task>) :
     }
 
     override fun getItemCount(): Int {
-        return if (mHeaderView == null) finishList.size else finishList.size + 1
+        finishList.value?.let {
+            return if (mHeaderView == null) it.size else it.size + 1
+        }
+        return 0
     }
 
     /**
