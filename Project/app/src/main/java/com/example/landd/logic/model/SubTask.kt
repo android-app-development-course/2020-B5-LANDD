@@ -13,8 +13,8 @@ data class SubTask(
         childColumns = ["taskId"],
         onDelete = ForeignKey.CASCADE
     )
-    var taskId: Int, var start: Int, var end: Int, var hasFinish: Boolean
+    var taskId: Long, var start: Int, var end: Int, var hasFinish: Boolean
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    var id: Long = 0
 }

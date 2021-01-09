@@ -7,17 +7,17 @@ import com.example.landd.logic.model.Task
 @Dao
 interface TaskDao {
     @Insert
-    suspend fun insert(task: Task?)
+    fun insert(task: Task?): Long
 
     @Delete
-    suspend fun delete(task: Task?)
+    fun delete(task: Task?)
 
     @Update
-    suspend fun update(task: Task)
+    fun update(task: Task)
 
     @Query("SELECT * FROM task_table where has_finish=0")
-    fun findUnFinishedAll (): List<Task>
+    fun findUnFinishedAll(): List<Task>
 
     @Query("SELECT * FROM task_table where has_finish=1")
-    fun findFinishedAll (): List<Task>
+    fun findFinishedAll(): List<Task>
 }

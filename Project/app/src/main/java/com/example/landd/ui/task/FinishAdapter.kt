@@ -7,13 +7,23 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
+import com.example.landd.database.AppDataBase
 import com.example.landd.logic.model.Task
 import kotlinx.android.synthetic.main.cell_finish.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.min
 
-class FinishAdapter(private var finishList: LiveData<MutableList<Task>>) :
+class FinishAdapter(
+    private val taskFragment: TaskFragment,
+    private var finishList: MutableLiveData<MutableList<Task>>
+) :
     RecyclerView.Adapter<FinishAdapter.FinishViewHolder>() {
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: FinishAdapter.OnItemClickListener? = null
@@ -67,10 +77,14 @@ class FinishAdapter(private var finishList: LiveData<MutableList<Task>>) :
                 }
                 itemView.deleteView.setOnClickListener {
                     if (itemCount > 0) {
-                        finishList.value!!.removeAt(position - 1);
-                        notifyItemRemoved(position);
+                        val pos = position
+                        val task = finishList.value!!.removeAt(pos - 1);
+                        GlobalScope.launch(Dispatchers.IO) {
+                            AppDataBase.getDatabase().taskDao().delete(task)
+                        }
+                        notifyItemRemoved(pos);
                         //删除后，为了防止position作乱调整位置,但是后面发现位置没有乱，保留此条是避免之后会遇到这种情况
-                        notifyItemRangeChanged(position, finishList.value!!.size - position);
+                        notifyItemRangeChanged(pos, finishList.value!!.size - pos);
                         //Toast.makeText(context, "长按", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -101,7 +115,7 @@ class FinishAdapter(private var finishList: LiveData<MutableList<Task>>) :
             holder.fileType.setImageResource(resid.values.toIntArray()[0])
         }
         holder.fileName.text = finish.file_name
-        holder.fileSize.text = finish.file_size.toString()
+        holder.fileSize.text = TaskUtil.pretty(finish.file_size)
         holder.finishTime.text = finish.finish_time
     }
 

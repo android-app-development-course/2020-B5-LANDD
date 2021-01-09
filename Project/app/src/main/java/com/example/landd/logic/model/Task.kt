@@ -13,5 +13,5 @@ data class Task(
     var has_finish: Boolean
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    var id: Long = 0
 }

@@ -9,20 +9,43 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landd.DownloadUtil
 import com.example.landd.LANDDApplication.Companion.context
 import com.example.landd.R
-import com.example.landd.logic.model.Task
+import com.example.landd.database.AppDataBase
+import com.example.landd.logic.model.*
 import kotlinx.android.synthetic.main.cell_download.view.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
-class DownLoadAdapter(private var downloadList: LiveData<List<Task>>) :
+class DownLoadAdapter(
+    private val taskFragment: TaskFragment,
+    private var downloadList: MutableLiveData<MutableList<Task>>
+) :
     RecyclerView.Adapter<DownLoadAdapter.DownLoadViewHolder>() {
+
+    init {
+        GlobalScope.launch(Dispatchers.Main) {
+            while (true) {
+                delay(1000)
+                notifyDataSetChanged()
+            }
+        }
+    }
+
+
     //需要外部访问，所以需要设置set方法，方便调用
     private var onItemClickListener: DownLoadAdapter.OnItemClickListener? = null
 
     //长按
     var mOnLongItemClickListener: DownLoadAdapter.OnRecyclerViewLongItemClickListener? = null
+
+    private val speedRecorderMap = HashMap<Task, SpeedRecorder>()
 
     //文件类型对应的资源文件
     private var imgMap = mapOf(
@@ -117,6 +140,13 @@ class DownLoadAdapter(private var downloadList: LiveData<List<Task>>) :
         val pos = getRealPosition(holder)
 
         val download: Task = downloadList.value!![pos]   //position 换为pos
+        val speedRecorder = speedRecorderMap.getOrPut(download) {
+            SpeedRecorder().apply {
+                GlobalScope.launch(Dispatchers.IO) {
+                    DownloadUtil.download(downloadList, getRealPosition(holder), this@apply)
+                }
+            }
+        }
         val resid = imgMap.filter { download.file_type in it.key }
         if (resid.isEmpty()) {//没有匹配到文件
             holder.fileType.setImageResource(R.drawable.file_unknown)
@@ -125,7 +155,8 @@ class DownLoadAdapter(private var downloadList: LiveData<List<Task>>) :
         }
         holder.fileName.text = download.file_name
         holder.downloadProcess.text = TaskUtil.pretty(download.file_size)
-        holder.fileSpeed.text = "100kb/s"
+        holder.fileSpeed.text = "${TaskUtil.pretty(speedRecorder.get())}/s"
+        speedRecorder.set(0)
     }
 
     override fun getItemCount(): Int {

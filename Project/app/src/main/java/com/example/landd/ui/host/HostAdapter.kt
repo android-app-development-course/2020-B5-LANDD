@@ -125,6 +125,7 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Live
                 } else {
                     host.state = State.DISCONNECTED
                 }
+                syncToDB(host)
                 fragment.requireActivity().runOnUiThread {
                     notifyDataSetChanged()
                 }

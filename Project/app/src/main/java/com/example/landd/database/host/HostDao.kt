@@ -3,15 +3,22 @@ package com.example.landd.database.host
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.landd.logic.model.Host
+import com.example.landd.logic.model.State
 
 @Dao
 interface HostDao {
     @Insert
-    suspend fun insert(host: Host?)
+    fun insert(host: Host?): Long
+
     @Update
-    suspend fun update(host: Host?)
+    fun update(host: Host?)
+
     @Delete
-    suspend fun delete(host: Host?)
+    fun delete(host: Host?)
+
     @Query("SELECT * FROM host_table")
-    suspend fun findAll (): List<Host>
+    suspend fun findAll(): List<Host>
+
+    @Query("select * from host_table where state=0")
+    fun getAllValid(): List<Host>
 }

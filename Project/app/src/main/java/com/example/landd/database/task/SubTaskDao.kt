@@ -7,17 +7,17 @@ import com.example.landd.logic.model.SubTask
 @Dao
 interface SubTaskDao {
     @Insert
-    suspend fun insert(subTask: SubTask)
+    fun insert(subTask: SubTask): Long
 
     @Delete
-    suspend fun delete(subTask: SubTask)
+    fun delete(subTask: SubTask)
 
     @Update
-    suspend fun update(subTask: SubTask)
+    fun update(subTask: SubTask)
 
     @Query("SELECT * FROM sub_task_table where taskId=:taskId and hasFinish=0")
-    fun findUnFinishedAll(taskId: Int): List<SubTask>
+    fun findUnFinishedAll(taskId: Long): List<SubTask>
 
     @Query("SELECT * FROM sub_task_table where taskId=:taskId and hasFinish=1")
-    fun findFinishedAll(taskId: Int): List<SubTask>
+    fun findFinishedAll(taskId: Long): List<SubTask>
 }

@@ -12,14 +12,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class TaskViewModel : ViewModel() {
-    val downloadingTaskList = MutableLiveData<List<Task>>()
+    val downloadingTaskList = MutableLiveData<MutableList<Task>>()
     val finishedTaskList = MutableLiveData<MutableList<Task>>()
 
-    public suspend fun refreshTaskList() {
-        downloadingTaskList.postValue(AppDataBase.getDatabase().taskDao().findUnFinishedAll())
-        val list = mutableListOf<Task>()
-        list.addAll(AppDataBase.getDatabase().taskDao().findFinishedAll())
-        finishedTaskList.postValue(list)
+    public fun refreshTaskList() {
+        val downloadingTaskList = mutableListOf<Task>()
+        downloadingTaskList.addAll(AppDataBase.getDatabase().taskDao().findUnFinishedAll())
+        this.downloadingTaskList.postValue(downloadingTaskList)
+        val finishedTaskList = mutableListOf<Task>()
+        finishedTaskList.addAll(AppDataBase.getDatabase().taskDao().findFinishedAll())
+        this.finishedTaskList.postValue(finishedTaskList)
     }
 
     public fun refreshTaskListInIOThread() {

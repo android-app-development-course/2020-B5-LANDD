@@ -22,5 +22,5 @@ data class Host(
     var state: State
 ) {
     @PrimaryKey(autoGenerate = true)
-    var id: Int = 0
+    var id: Long = 0
 }

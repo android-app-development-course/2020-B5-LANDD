@@ -1,10 +1,13 @@
 package com.example.landd
 
 import android.content.Context
+import android.util.Log
 import android.webkit.URLUtil
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.SortedList
 import com.example.landd.database.AppDataBase
-import com.example.landd.logic.model.SubTask
-import com.example.landd.logic.model.Task
+import com.example.landd.logic.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -16,6 +19,7 @@ import org.littleshoot.proxy.impl.DefaultHttpProxyServer
 import java.lang.Exception
 import java.net.InetSocketAddress
 import java.net.Proxy
+import java.util.concurrent.atomic.AtomicInteger
 
 data class Authentication(val username: String, val password: String)
 
@@ -138,9 +142,11 @@ object DownloadUtil {
 
         // 生成任务
         val fileName = URLUtil.guessFileName(url, disposition, fileType)
+        val db = AppDataBase.getDatabase()
         val task = Task(url, fileName, fileSize, "", "", false)
+        task.id = db.taskDao().insert(task)
         val subTaskList = mutableListOf<SubTask>()
-        if (fileSize != -1 && fileSize < minFileSizeToSplit) {
+        if (fileSize != -1 && fileSize > minFileSizeToSplit) {
             val partSize = fileSize / minFileSizeToSplit
             for (i in 0..partSize) {
                 val start = minFileSizeToSplit * i
@@ -152,19 +158,17 @@ object DownloadUtil {
         } else {
             subTaskList.add(SubTask(task.id, 0, -1, false))
         }
-
-        val db = AppDataBase.getDatabase()
-        db.runInTransaction {
-            GlobalScope.launch(Dispatchers.Main) {
-                db.taskDao().insert(task)
-                for (subTask in subTaskList) {
-                    db.subTaskDao().insert(subTask)
-                }
-            }
+        for (subTask in subTaskList) {
+            db.subTaskDao().insert(subTask)
         }
     }
 
-    public fun download(inetSocketAddress: InetSocketAddress, task: Task, subTask: SubTask) {
+    public fun download(
+        inetSocketAddress: InetSocketAddress,
+        task: Task,
+        subTask: SubTask,
+        speedRecorder: SpeedRecorder
+    ) {
         val client = getClient(inetSocketAddress)
         val fos = LANDDApplication.context.openFileOutput("${subTask.id}", Context.MODE_PRIVATE)
         client.newCall(range(task.url, subTask.start, subTask.end)).execute().body()?.byteStream()
@@ -173,19 +177,97 @@ object DownloadUtil {
                 while (true) {
                     when (val len = it.read(b)) {
                         -1, 0 -> break
-                        else -> fos.write(b, 0, len)
+                        else -> {
+                            speedRecorder.addAndGet(len)
+                            fos.write(b, 0, len)
+                        }
                     }
                 }
             }
         fos.close()
     }
 
-    public fun download(hostname: String, port: Int, task: Task, subTask: SubTask) {
-        download(InetSocketAddress(hostname, port), task, subTask)
+    public fun download(
+        hostname: String,
+        port: Int,
+        task: Task,
+        subTask: SubTask,
+        speedRecorder: SpeedRecorder
+    ) {
+        download(InetSocketAddress(hostname, port), task, subTask, speedRecorder)
     }
 
-    public fun download(task: Task, subTask: SubTask) {
-        ps?.let { download(it.listenAddress, task, subTask) } ?: throw NoProxyServerException()
+    public fun download(
+        taskListLiveData: MutableLiveData<MutableList<Task>>,
+        position: Int,
+        speedRecorder: SpeedRecorder
+    ) {
+        val taskList = taskListLiveData.value!!
+        val task = taskList[position]
+        val db = AppDataBase.getDatabase()
+
+        // 任务已完成则返回
+        if (task.has_finish) {
+            return
+        }
+
+        // 找出未完成的子任务
+        val unfinishedSubTaskList = db.subTaskDao().findUnFinishedAll(task.id)
+        if (unfinishedSubTaskList.isNotEmpty()) {
+            // 如果有未完成的子任务，那么开始下载
+            // 找到可用的服务器
+            val validHostList = db.hostDao().getAllValid()
+            if (validHostList.isEmpty()) {
+                throw Exception("无可用的服务器")
+            }
+
+            // 分配任务给各个服务器
+            val dispatcher = MutableList(validHostList.size) { mutableListOf<Int>() }
+            for (i in unfinishedSubTaskList.indices) {
+                dispatcher[i % validHostList.size].add(i)
+            }
+
+            for (i in dispatcher.indices) {
+                if (dispatcher[i].size > 0) {
+                    // 该服务器有下载任务
+                    val host = validHostList[i]
+                    GlobalScope.launch(Dispatchers.IO) {
+                        for (j in dispatcher[i]) {
+                            val subTask = unfinishedSubTaskList[j]
+                            download(host.ip, host.port, task, subTask, speedRecorder)
+                            subTask.hasFinish = true
+                            db.subTaskDao().update(subTask)
+                        }
+
+                        // 完成任务
+                        mergeTempFiles(taskListLiveData, position)
+                    }
+                }
+            }
+        } else {
+            mergeTempFiles(taskListLiveData, position)
+        }
+    }
+
+    public fun mergeTempFiles(taskListLiveData: MutableLiveData<MutableList<Task>>, position: Int) {
+        val taskList = taskListLiveData.value!!
+        val task = taskList[position]
+        val db = AppDataBase.getDatabase()
+        val unfinishedSubTaskList = db.subTaskDao().findUnFinishedAll(task.id)
+        if (unfinishedSubTaskList.isNotEmpty()) {
+            return
+        }
+        val finishedSubTaskList = db.subTaskDao().findFinishedAll(task.id)
+        val fos = LANDDApplication.context.openFileOutput(task.file_name, Context.MODE_PRIVATE)
+        for (subTask in finishedSubTaskList) {
+            LANDDApplication.context.openFileInput(subTask.id.toString()).use {
+                fos.write(it.readBytes())
+            }
+        }
+        fos.close()
+        task.has_finish = true
+        taskListLiveData.postValue(taskList)
+        db.taskDao().update(task)
     }
 
     open class UtilException : Exception()
