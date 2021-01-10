@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landd.DownloadUtil
 import com.example.landd.LANDDApplication
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
 
 class HostAdapter(private val fragment: HostFragment, private val hostList: LiveData<List<Host>>) :
     RecyclerView.Adapter<HostAdapter.ViewHolder>() {
-    inner class ViewHolder(view: View, val refreshAnimation: Animation) :
+    inner class ViewHolder(val view: View, val refreshAnimation: Animation) :
         RecyclerView.ViewHolder(view) {
         val hostStatusColor: View = view.findViewById(R.id.hostStatusColor)
         val hostRefresh: ImageView = view.findViewById(R.id.hostRefresh)
@@ -167,6 +168,16 @@ class HostAdapter(private val fragment: HostFragment, private val hostList: Live
                 notifyDataSetChanged()
             }
             syncToDB(host)
+        }
+        holder.view.setOnLongClickListener {
+            GlobalScope.launch(Dispatchers.IO) {
+                AppDataBase.getDatabase().hostDao().delete(host)
+                ViewModelProvider(fragment).get(HostViewModel::class.java).refreshHostList()
+                fragment.requireActivity().runOnUiThread {
+                    notifyDataSetChanged()
+                }
+            }
+            true
         }
     }
 
