@@ -32,9 +32,10 @@ object DownloadUtil {
     private val clientMap = HashMap<String, OkHttpClient>()
     private var ps: HttpProxyServer? = null
     private var authentication: Authentication? = null
+    private const val TAG = "DownloadUtil"
 
     // 最小的需要划分成多个子任务的文件大小，如果文件大小小于minFileSizeToSplit，那么不划分多个子任务
-    var minFileSizeToSplit = 1024 * 1024
+    var minFileSizeToSplit = 10 * 1024 * 1024
 
     public fun startProxyServer(port: Int, authentication: Authentication? = null) {
         stopProxyServer()
@@ -239,9 +240,13 @@ object DownloadUtil {
                     GlobalScope.launch(Dispatchers.IO) {
                         for (j in dispatcher[i]) {
                             val subTask = unfinishedSubTaskList[j]
-                            download(host.ip, host.port, task, subTask, speedRecorder)
-                            subTask.hasFinish = true
-                            db.subTaskDao().update(subTask)
+                            try {
+                                download(host.ip, host.port, task, subTask, speedRecorder)
+                                subTask.hasFinish = true
+                                db.subTaskDao().update(subTask)
+                            } catch (e: Exception) {
+                                Log.d(TAG, "download: ${host.ip}:${host.port}不可用")
+                            }
                         }
 
                         // 完成任务，更新
@@ -301,7 +306,7 @@ object DownloadUtil {
                     fos.write(it.readBytes())
                 }
             } catch (e: FileNotFoundException) {
-                Log.d("TAG", "mergeTempFiles: NoSuchSubTaskFile")
+                Log.d(TAG, "mergeTempFiles: NoSuchSubTaskFile")
             }
         }
         fos.close()
