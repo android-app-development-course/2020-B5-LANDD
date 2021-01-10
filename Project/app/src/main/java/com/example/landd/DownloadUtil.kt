@@ -1,6 +1,8 @@
 package com.example.landd
 
 import android.content.Context
+import android.icu.text.DateFormat
+import android.os.Environment
 import android.util.Log
 import android.webkit.URLUtil
 import androidx.lifecycle.LiveData
@@ -16,6 +18,9 @@ import okhttp3.Request
 import org.littleshoot.proxy.HttpProxyServer
 import org.littleshoot.proxy.ProxyAuthenticator
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.lang.Exception
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -239,35 +244,70 @@ object DownloadUtil {
                             db.subTaskDao().update(subTask)
                         }
 
-                        // 完成任务
-                        mergeTempFiles(taskListLiveData, position)
+                        // 完成任务，更新
+                        taskListLiveData.postValue(taskList)
+//                        try {
+//                            mergeTempFiles(taskListLiveData, position)
+//                        } catch (e: Exception) {
+//                        }
                     }
                 }
             }
-        } else {
-            mergeTempFiles(taskListLiveData, position)
+        }
+//        else {
+//            mergeTempFiles(taskListLiveData, position)
+//        }
+    }
+
+    private fun fileOutputStream(name: String): FileOutputStream {
+        try {
+            if (File(name).exists()) {
+                throw Exception()
+            }
+            return FileOutputStream(name)
+        } catch (e: Exception) {
+            var i = 1
+            while (true) {
+                try {
+                    if (File("${name}_$i").exists()) {
+                        throw Exception()
+                    }
+                    return FileOutputStream("${name}_$i")
+                } catch (e: Exception) {
+                    ++i
+                }
+            }
         }
     }
 
-    public fun mergeTempFiles(taskListLiveData: MutableLiveData<MutableList<Task>>, position: Int) {
+    public fun mergeTempFiles(
+        taskListLiveData: MutableLiveData<MutableList<Task>>,
+        position: Int
+    ): Boolean {
         val taskList = taskListLiveData.value!!
         val task = taskList[position]
         val db = AppDataBase.getDatabase()
         val unfinishedSubTaskList = db.subTaskDao().findUnFinishedAll(task.id)
         if (unfinishedSubTaskList.isNotEmpty()) {
-            return
+            return false
         }
         val finishedSubTaskList = db.subTaskDao().findFinishedAll(task.id)
-        val fos = LANDDApplication.context.openFileOutput(task.file_name, Context.MODE_PRIVATE)
+//        val fos = LANDDApplication.context.openFileOutput(task.file_name, Context.MODE_PRIVATE)
+        val baseName = "/storage/emulated/0/Download/${task.file_name}"
+        val fos: FileOutputStream = fileOutputStream(baseName)
         for (subTask in finishedSubTaskList) {
-            LANDDApplication.context.openFileInput(subTask.id.toString()).use {
-                fos.write(it.readBytes())
+            try {
+                LANDDApplication.context.openFileInput(subTask.id.toString()).use {
+                    fos.write(it.readBytes())
+                }
+            } catch (e: FileNotFoundException) {
+                Log.d("TAG", "mergeTempFiles: NoSuchSubTaskFile")
             }
         }
         fos.close()
         task.has_finish = true
-        taskListLiveData.postValue(taskList)
         db.taskDao().update(task)
+        return true
     }
 
     open class UtilException : Exception()

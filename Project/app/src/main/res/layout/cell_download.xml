@@ -70,13 +70,13 @@
                     android:layout_weight="0.2"
                     app:pv_autostart="true"
                     app:pv_circular="false"
-                    app:pv_progressMode="indeterminate"
-                    app:pv_progressStyle="@style/DarkLinearProgressDrawable" />
+                    app:pv_progress="0"
+                    app:pv_progressMode="determinate" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginStart="5dp"
                     android:layout_marginBottom="5dp"
                     android:layout_weight="0.4"
                     android:orientation="horizontal">

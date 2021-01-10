@@ -67,7 +67,7 @@ class FinishAdapter(
                 finishTime = itemView.findViewById(R.id.finish_time)
                 itemView.setOnClickListener { v -> //此处回传点击监听事件
                     finishList.value?.let {
-                        onItemClickListener?.OnItemClick(v, it[layoutPosition - 1])
+                        onItemClickListener?.OnItemClick(v, it[max(0, layoutPosition - 1)])
                     }
                 }
                 //长按
@@ -78,7 +78,7 @@ class FinishAdapter(
                 itemView.deleteView.setOnClickListener {
                     if (itemCount > 0) {
                         val pos = position
-                        val task = finishList.value!!.removeAt(pos - 1);
+                        val task = finishList.value!!.removeAt(max(pos - 1, 0));
                         GlobalScope.launch(Dispatchers.IO) {
                             AppDataBase.getDatabase().taskDao().delete(task)
                         }
