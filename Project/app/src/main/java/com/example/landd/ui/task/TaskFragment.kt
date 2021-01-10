@@ -122,7 +122,8 @@ class TaskFragment : Fragment() {
             override fun OnItemClick(view: View?, data: Task?) {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.data = Uri.parse("/storage/emulated/0/Download")
+//                intent.data = Uri.parse("/storage/emulated/0/Download")
+                intent.data = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
                 intent.type = "*/*"
                 startActivity(intent)
             }
